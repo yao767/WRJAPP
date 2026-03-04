@@ -35,38 +35,58 @@ class HomePage extends StatelessWidget {
                       final item = history[index];
                       final isCurrent = task != null && _isSameTask(task, item);
                       return Card(
-                        child: ListTile(
-                          leading: CircleAvatar(child: Text('${index + 1}')),
-                          title: Text('${item.taskType} | ${item.crop} | ${item.season}'),
-                          subtitle: Text(
-                            '高${item.height.toStringAsFixed(1)}m  速${item.speed.toStringAsFixed(1)}m/s  角${item.angle.toStringAsFixed(0)}°\n${item.updatedAt.toLocal()}',
-                          ),
-                          isThreeLine: true,
-                          trailing: SizedBox(
-                            width: 96,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FilledButton.tonal(
-                                  onPressed: isCurrent
-                                      ? null
-                                      : () async {
-                                          await context.read<AppState>().setCurrentTaskFromHistory(item);
-                                          if (!context.mounted) return;
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('已设为当前任务', textAlign: TextAlign.center)),
-                                          );
-                                        },
-                                  child: Text(isCurrent ? '当前任务' : '设为当前'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(child: Text('${index + 1}')),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${item.taskType} | ${item.crop} | ${item.season}',
+                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '高${item.height.toStringAsFixed(1)}m  速${item.speed.toStringAsFixed(1)}m/s  角${item.angle.toStringAsFixed(0)}°',
+                                    ),
+                                    Text('${item.updatedAt.toLocal()}'),
+                                  ],
                                 ),
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => TaskEditorPage(editingTask: item)),
-                                  ),
-                                  child: const Text('编辑任务'),
+                              ),
+                              const SizedBox(width: 8),
+                              SizedBox(
+                                width: 92,
+                                child: Column(
+                                  children: [
+                                    FilledButton.tonal(
+                                      onPressed: isCurrent
+                                          ? null
+                                          : () async {
+                                              await context.read<AppState>().setCurrentTaskFromHistory(item);
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('已设为当前任务', textAlign: TextAlign.center)),
+                                              );
+                                            },
+                                      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(38)),
+                                      child: Text(isCurrent ? '当前任务' : '设为当前'),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (_) => TaskEditorPage(editingTask: item)),
+                                      ),
+                                      child: const Text('编辑任务'),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       );
