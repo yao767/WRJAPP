@@ -1,0 +1,151 @@
+name: Build Signed Release APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-release-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Prepare Android platform
+        run: flutter create . --platforms=android
+
+      - name: Validate signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ] || [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "Missing one or more required secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD"
+            exit 1
+          fi
+
+      - name: Create keystore and key.properties
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Inject release signing config
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          app_gradle_kts = Path("android/app/build.gradle.kts")
+          app_gradle = Path("android/app/build.gradle")
+
+          if app_gradle_kts.exists():
+              content = app_gradle_kts.read_text(encoding="utf-8")
+
+              header = '''import java.io.FileInputStream
+          import java.util.Properties
+
+          val keystoreProperties = Properties()
+          val keystorePropertiesFile = rootProject.file("key.properties")
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+          }
+
+          '''
+              if "val keystoreProperties = Properties()" not in content:
+                  content = header + content
+
+              if "create(\"release\")" not in content:
+                  content = content.replace(
+                      "buildTypes {",
+                      """signingConfigs {
+          create(\"release\") {
+              keyAlias = keystoreProperties[\"keyAlias\"] as String
+              keyPassword = keystoreProperties[\"keyPassword\"] as String
+              storeFile = rootProject.file(keystoreProperties[\"storeFile\"] as String)
+              storePassword = keystoreProperties[\"storePassword\"] as String
+          }
+      }
+
+      buildTypes {""",
+                      1,
+                  )
+
+              content = content.replace(
+                  'signingConfig = signingConfigs.getByName("debug")',
+                  'signingConfig = signingConfigs.getByName("release")',
+              )
+
+              app_gradle_kts.write_text(content, encoding="utf-8")
+
+          elif app_gradle.exists():
+              content = app_gradle.read_text(encoding="utf-8")
+
+              header = '''def keystoreProperties = new Properties()
+          def keystorePropertiesFile = rootProject.file('key.properties')
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+          }
+
+          '''
+              if "def keystoreProperties = new Properties()" not in content:
+                  content = header + content
+
+              if "signingConfigs" in content and "release" in content and "keystoreProperties" in content:
+                  pass
+              else:
+                  content = content.replace(
+                      "buildTypes {",
+                      """signingConfigs {
+          release {
+              keyAlias keystoreProperties['keyAlias']
+              keyPassword keystoreProperties['keyPassword']
+              storeFile file(keystoreProperties['storeFile'])
+              storePassword keystoreProperties['storePassword']
+          }
+      }
+
+      buildTypes {""",
+                      1,
+                  )
+
+              content = content.replace(
+                  "signingConfig signingConfigs.debug",
+                  "signingConfig signingConfigs.release",
+              )
+              content = content.replace(
+                  "signingConfig = signingConfigs.debug",
+                  "signingConfig = signingConfigs.release",
+              )
+
+              app_gradle.write_text(content, encoding="utf-8")
+          else:
+              raise SystemExit("android/app/build.gradle(.kts) not found")
+          PY
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build signed release APK
+        run: flutter build apk --release
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk

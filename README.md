@@ -83,6 +83,36 @@ flutter run
 
 > 说明：当前输出为调试包（debug），用于快速安装验证功能。
 
+## 生成可分发的签名 Release APK
+仓库已提供工作流：`Build Signed Release APK`。
+
+### 1) 准备签名文件
+先在任意可用 JDK 环境执行（仅一次）：
+
+```bash
+keytool -genkeypair -v -keystore upload-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+再将 keystore 转为 Base64（Windows PowerShell）：
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("./upload-keystore.jks")) | Set-Content ./keystore.base64.txt
+```
+
+### 2) 在 GitHub 仓库配置 Secrets
+进入仓库 `Settings -> Secrets and variables -> Actions`，新增：
+
+- `ANDROID_KEYSTORE_BASE64`：`keystore.base64.txt` 的完整内容
+- `ANDROID_KEYSTORE_PASSWORD`：keystore 密码
+- `ANDROID_KEY_ALIAS`：别名（例如 `upload`）
+- `ANDROID_KEY_PASSWORD`：key 密码
+
+### 3) 运行发布工作流
+1. 打开 `Actions` 页面。
+2. 手动运行 `Build Signed Release APK`。
+3. 构建完成后下载 Artifact：`app-release-apk`。
+4. 解压后得到 `app-release.apk`，即可用于正式安装测试。
+
 ## 已知限制
 - 账号密码仅本地存储，未加密。
 - 无后端接口，无法进行任务历史云端同步。
