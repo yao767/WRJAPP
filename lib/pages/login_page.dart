@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../app_info.dart';
 import '../state/app_state.dart';
+import '../utils/app_feedback.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -53,9 +54,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _show(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg, textAlign: TextAlign.center)),
-    );
+    showAppToast(context, msg);
   }
 
   @override

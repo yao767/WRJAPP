@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../models/flight_task.dart';
 import '../state/app_state.dart';
+import '../utils/app_feedback.dart';
+import '../utils/time_format.dart';
 import 'task_editor_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -34,6 +36,7 @@ class HomePage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final item = history[index];
                       final isCurrent = task != null && _isSameTask(task, item);
+                      final taskName = item.taskName?.trim().isNotEmpty == true ? item.taskName! : '${item.taskType}任务';
                       return Card(
                         child: Padding(
                           padding: const EdgeInsets.all(12),
@@ -47,20 +50,22 @@ class HomePage extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${item.taskType} | ${item.crop} | ${item.season}',
+                                      '$taskName | ${item.crop} | ${item.season}',
                                       style: const TextStyle(fontWeight: FontWeight.w600),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       '高${item.height.toStringAsFixed(1)}m  速${item.speed.toStringAsFixed(1)}m/s  角${item.angle.toStringAsFixed(0)}°',
                                     ),
-                                    Text('${item.updatedAt.toLocal()}'),
+                                    Text(formatToMinute(item.updatedAt)),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 8),
                               SizedBox(
-                                width: 92,
+                                width: 106,
                                 child: Column(
                                   children: [
                                     FilledButton.tonal(
@@ -69,12 +74,15 @@ class HomePage extends StatelessWidget {
                                           : () async {
                                               await context.read<AppState>().setCurrentTaskFromHistory(item);
                                               if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text('已设为当前任务', textAlign: TextAlign.center)),
-                                              );
+                                              showAppToast(context, '已设为当前任务');
                                             },
                                       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(38)),
-                                      child: Text(isCurrent ? '当前任务' : '设为当前'),
+                                      child: Text(
+                                        isCurrent ? '当前任务' : '设为当前',
+                                        maxLines: 1,
+                                        softWrap: false,
+                                        overflow: TextOverflow.fade,
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     TextButton(
@@ -121,6 +129,8 @@ class _CurrentTaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final taskName = task?.taskName?.trim().isNotEmpty == true ? task!.taskName! : '${task?.taskType ?? '默认'}任务';
+
     if (task == null) {
       return SizedBox(
         height: 190,
@@ -144,13 +154,18 @@ class _CurrentTaskCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('当前任务：${task!.taskType}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              '当前任务：$taskName',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             const SizedBox(height: 8),
             Text('作物：${task!.crop} | 时节：${task!.season}'),
             Text('起飞：${task!.takeoffMode} / 运作：${task!.operationMode} / 降落：${task!.landingMode}'),
             Text('高度：${task!.height.toStringAsFixed(1)}m  速度：${task!.speed.toStringAsFixed(1)}m/s  角度：${task!.angle.toStringAsFixed(0)}°'),
             const SizedBox(height: 8),
-            Text('更新时间：${task!.updatedAt.toLocal()}'),
+            Text('更新时间：${formatToMinute(task!.updatedAt)}'),
           ],
         ),
       ),

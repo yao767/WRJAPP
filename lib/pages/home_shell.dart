@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/app_update_info.dart';
 import '../services/update_service.dart';
 import '../state/app_state.dart';
+import '../utils/app_feedback.dart';
 import 'about_page.dart';
 import 'home_page.dart';
 import 'settings_page.dart';
@@ -29,7 +30,13 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   Future<void> _checkUpdate() async {
-    final update = await const UpdateService().checkForUpdate();
+    AppUpdateInfo? update;
+    try {
+      update = await const UpdateService().checkForUpdate();
+    } catch (_) {
+      if (mounted) showAppToast(context, '检查更新失败，请稍后重试');
+      return;
+    }
     if (!mounted || update == null) return;
     await _showUpdateDialog(update);
   }

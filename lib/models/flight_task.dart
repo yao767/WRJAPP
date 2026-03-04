@@ -3,6 +3,7 @@ import 'dart:convert';
 class FlightTask {
   FlightTask({
     required this.id,
+    this.taskName,
     required this.taskType,
     required this.crop,
     required this.season,
@@ -16,6 +17,7 @@ class FlightTask {
   });
 
   final String id;
+  final String? taskName;
   final String taskType;
   final String crop;
   final String season;
@@ -29,6 +31,7 @@ class FlightTask {
 
   FlightTask copyWith({
     String? id,
+    String? taskName,
     String? taskType,
     String? crop,
     String? season,
@@ -42,6 +45,7 @@ class FlightTask {
   }) {
     return FlightTask(
       id: id ?? this.id,
+      taskName: taskName ?? this.taskName,
       taskType: taskType ?? this.taskType,
       crop: crop ?? this.crop,
       season: season ?? this.season,
@@ -58,6 +62,7 @@ class FlightTask {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'taskName': taskName,
       'taskType': taskType,
       'crop': crop,
       'season': season,
@@ -75,6 +80,7 @@ class FlightTask {
     final updatedAt = DateTime.parse(map['updatedAt'] as String);
     return FlightTask(
       id: (map['id'] as String?) ?? updatedAt.toIso8601String(),
+      taskName: map['taskName'] as String?,
       taskType: map['taskType'] as String,
       crop: map['crop'] as String,
       season: map['season'] as String,

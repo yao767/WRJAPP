@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/app_state.dart';
+import '../utils/app_feedback.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -84,9 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 );
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('全局参数已保存', textAlign: TextAlign.center)),
-                );
+                showAppToast(context, '全局参数已保存');
               },
               child: const Text('保存全局参数'),
             ),
@@ -97,9 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       await service.connect(_selectedDevice!);
                       if (!mounted) return;
                       setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('已连接：${service.deviceName}', textAlign: TextAlign.center)),
-                      );
+                      showAppToast(context, '已连接：${service.deviceName}');
                     },
               child: const Text('连接设备'),
             ),
@@ -125,15 +122,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         });
                       } on StateError catch (error) {
                         if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(error.message, textAlign: TextAlign.center)),
-                        );
+                        showAppToast(context, error.message);
                         return;
                       }
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('参数已下发（模拟）', textAlign: TextAlign.center)),
-                      );
+                      showAppToast(context, '参数已下发（模拟）');
                     }
                   : null,
               child: const Text('下发参数'),

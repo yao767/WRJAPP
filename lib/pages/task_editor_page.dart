@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/flight_task.dart';
 import '../state/app_state.dart';
+import '../utils/app_feedback.dart';
 
 class TaskEditorPage extends StatefulWidget {
   const TaskEditorPage({super.key, this.editingTask});
@@ -14,6 +15,8 @@ class TaskEditorPage extends StatefulWidget {
 }
 
 class _TaskEditorPageState extends State<TaskEditorPage> {
+  final _taskNameController = TextEditingController();
+
   String _taskType = '喷洒';
   String _crop = '水稻';
   String _season = '春季';
@@ -28,6 +31,12 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
   double _humidity = 60;
   double _rainfall = 10;
   double _sunshine = 6;
+
+  @override
+  void dispose() {
+    _taskNameController.dispose();
+    super.dispose();
+  }
 
   void _applySuggestion() {
     final suggestion = context.read<AppState>().buildSuggestion(
@@ -44,15 +53,15 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
       _angle = suggestion.recommendedAngle;
       _operationMode = suggestion.operationMode;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已应用建议：${suggestion.summary}', textAlign: TextAlign.center)),
-    );
+    showAppToast(context, '已应用建议：${suggestion.summary}');
   }
 
   Future<void> _save() async {
     final sourceTask = widget.editingTask;
+    final taskName = _taskNameController.text.trim();
     final task = FlightTask(
       id: sourceTask?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      taskName: taskName.isEmpty ? null : taskName,
       taskType: _taskType,
       crop: _crop,
       season: _season,
@@ -67,9 +76,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
 
     await context.read<AppState>().saveTask(task);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('任务参数已保存', textAlign: TextAlign.center)),
-    );
+    showAppToast(context, '任务参数已保存');
     Navigator.of(context).pop();
   }
 
@@ -79,9 +86,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
 
     await context.read<AppState>().deleteTaskById(sourceTask.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('任务已删除', textAlign: TextAlign.center)),
-    );
+    showAppToast(context, '任务已删除');
     Navigator.of(context).pop();
   }
 
@@ -90,6 +95,7 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     if (!_initialized) {
       final sourceTask = widget.editingTask;
       if (sourceTask != null) {
+        _taskNameController.text = sourceTask.taskName ?? '';
         _taskType = sourceTask.taskType;
         _crop = sourceTask.crop;
         _season = sourceTask.season;
@@ -113,6 +119,14 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          TextField(
+            controller: _taskNameController,
+            decoration: const InputDecoration(
+              labelText: '任务名称（可选）',
+              hintText: '不填写则自动使用默认任务名称',
+            ),
+          ),
+          const SizedBox(height: 10),
           _dropdown('飞行分类', _taskType, const ['喷洒', '除草', '杀菌'], (v) => _taskType = v),
           _dropdown('作物类型', _crop, const ['水稻', '小麦', '玉米', '果树'], (v) => _crop = v),
           _dropdown('当前时节', _season, const ['春季', '夏季', '秋季', '冬季'], (v) => _season = v),

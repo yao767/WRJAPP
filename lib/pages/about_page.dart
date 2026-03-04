@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_info.dart';
 import '../models/app_update_info.dart';
 import '../services/update_service.dart';
+import '../utils/app_feedback.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -91,17 +92,13 @@ class AboutPage extends StatelessWidget {
       final update = await const UpdateService().checkForUpdate();
       if (!context.mounted) return;
       if (update == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('当前已是最新版本', textAlign: TextAlign.center)),
-        );
+        showAppToast(context, '当前已是最新版本');
         return;
       }
       await _showUpdateDialog(context, update);
     } catch (_) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('检查更新失败，请稍后重试', textAlign: TextAlign.center)),
-      );
+      showAppToast(context, '检查更新失败，请稍后重试');
     }
   }
 
