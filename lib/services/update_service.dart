@@ -1,13 +1,44 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../app_info.dart';
 import '../models/app_update_info.dart';
 
 class UpdateService {
   const UpdateService();
+
+  Future<void> downloadAndInstallApk({
+    required AppUpdateInfo info,
+    required void Function(double progress) onProgress,
+  }) async {
+    if (!Platform.isAndroid) {
+      throw Exception('当前仅支持 Android 安装包更新');
+    }
+
+    final directory = await getApplicationDocumentsDirectory();
+    final filePath = '${directory.path}/wrjapp_${info.version}_${info.buildNumber}.apk';
+
+    final dio = Dio();
+    await dio.download(
+      info.downloadUrl,
+      filePath,
+      onReceiveProgress: (received, total) {
+        if (total <= 0) return;
+        onProgress(received / total);
+      },
+    );
+
+    final result = await OpenFilex.open(filePath);
+    if (result.type != ResultType.done) {
+      throw Exception('安装页面调起失败：${result.message}');
+    }
+  }
 
   Future<AppUpdateInfo?> fetchUpdateInfo() async {
     final uri = Uri.parse(appUpdateManifestUrl);

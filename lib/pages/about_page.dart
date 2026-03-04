@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../app_info.dart';
 import '../models/app_update_info.dart';
@@ -9,38 +8,79 @@ class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
   Future<void> _showUpdateDialog(BuildContext context, AppUpdateInfo info) async {
+    final updateService = const UpdateService();
     await showDialog<void>(
       context: context,
       barrierDismissible: !info.force,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('发现新版本', textAlign: TextAlign.center),
-          content: Text(
-            '最新版本：${info.version}+${info.buildNumber}\n\n更新内容：\n${info.releaseNotes}',
-            textAlign: TextAlign.center,
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: [
-            if (!info.force)
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('暂不更新'),
+        var isDownloading = false;
+        var progress = 0.0;
+        String? statusText;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('发现新版本', textAlign: TextAlign.center),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '最新版本：${info.version}+${info.buildNumber}\n\n更新内容：\n${info.releaseNotes}',
+                    textAlign: TextAlign.center,
+                  ),
+                  if (isDownloading) ...[
+                    const SizedBox(height: 12),
+                    LinearProgressIndicator(value: progress),
+                    const SizedBox(height: 8),
+                    Text('下载进度 ${(progress * 100).toStringAsFixed(0)}%', textAlign: TextAlign.center),
+                  ],
+                  if (statusText != null) ...[
+                    const SizedBox(height: 8),
+                    Text(statusText!, textAlign: TextAlign.center),
+                  ],
+                ],
               ),
-            FilledButton(
-              onPressed: () async {
-                final uri = Uri.parse(info.downloadUrl);
-                final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                if (!context.mounted) return;
-                if (!ok) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('下载链接打开失败', textAlign: TextAlign.center)),
-                  );
-                }
-                Navigator.of(context).pop();
-              },
-              child: const Text('立即更新'),
-            ),
-          ],
+              actionsAlignment: MainAxisAlignment.center,
+              actions: [
+                if (!info.force)
+                  TextButton(
+                    onPressed: isDownloading ? null : () => Navigator.of(context).pop(),
+                    child: const Text('暂不更新'),
+                  ),
+                FilledButton(
+                  onPressed: isDownloading
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isDownloading = true;
+                            progress = 0;
+                            statusText = null;
+                          });
+                          try {
+                            await updateService.downloadAndInstallApk(
+                              info: info,
+                              onProgress: (value) {
+                                setDialogState(() => progress = value);
+                              },
+                            );
+                            if (!context.mounted) return;
+                            setDialogState(() {
+                              isDownloading = false;
+                              statusText = '下载完成，已调起安装界面';
+                            });
+                          } catch (error) {
+                            if (!context.mounted) return;
+                            setDialogState(() {
+                              isDownloading = false;
+                              statusText = '更新失败：$error';
+                            });
+                          }
+                        },
+                  child: Text(isDownloading ? '下载中...' : '立即更新'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
