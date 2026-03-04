@@ -86,6 +86,8 @@ flutter run
 ## 生成可分发的签名 Release APK
 仓库已提供工作流：`Build Signed Release APK`。
 
+> 快速模式：如果你暂时不配置 Secrets，工作流会在云端自动生成临时签名并产出 `app-release.apk`，可直接安装测试。
+
 ### 1) 准备签名文件
 先在任意可用 JDK 环境执行（仅一次）：
 
@@ -106,6 +108,8 @@ keytool -genkeypair -v -keystore upload-keystore.jks -alias upload -keyalg RSA -
 - `ANDROID_KEYSTORE_PASSWORD`：keystore 密码
 - `ANDROID_KEY_ALIAS`：别名（例如 `upload`）
 - `ANDROID_KEY_PASSWORD`：key 密码
+
+> 不配置以上 Secrets 也能构建成功（使用临时签名），但后续升级安装包时签名不稳定，建议正式发布前再配置。
 
 ### 3) 运行发布工作流
 1. 打开 `Actions` 页面。
