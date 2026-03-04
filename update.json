@@ -1,7 +1,7 @@
 {
   "version": "0.1.1",
   "buildNumber": 2,
-  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/latest",
+  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v0.1.1/app-release.apk",
   "releaseNotes": "修复任务历史编辑按钮不可用与列表溢出问题，优化弹窗显示与在线更新流程稳定性。",
   "force": false
 }
