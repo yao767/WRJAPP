@@ -21,8 +21,23 @@ jobs:
       - name: Prepare Android platform
         run: flutter create . --platforms=android
 
+      - name: Configure Android app label
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          content = manifest.read_text(encoding='utf-8')
+          content = content.replace('android:label="drone_guardian_app"', 'android:label="护花使者——植保无人机适配系统APP"')
+          content = content.replace('android:label="appdemo"', 'android:label="护花使者——植保无人机适配系统APP"')
+          manifest.write_text(content, encoding='utf-8')
+          PY
+
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Generate app icon
+        run: dart run flutter_launcher_icons
 
       - name: Build debug APK
         run: flutter build apk --debug

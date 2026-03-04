@@ -42,18 +42,32 @@ class HomePage extends StatelessWidget {
                             '高${item.height.toStringAsFixed(1)}m  速${item.speed.toStringAsFixed(1)}m/s  角${item.angle.toStringAsFixed(0)}°\n${item.updatedAt.toLocal()}',
                           ),
                           isThreeLine: true,
-                          trailing: isCurrent
-                              ? const Icon(Icons.check_circle, color: Colors.green)
-                              : FilledButton.tonal(
-                                  onPressed: () async {
-                                    await context.read<AppState>().setCurrentTaskFromHistory(item);
-                                    if (!context.mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('已设为当前任务')),
-                                    );
-                                  },
-                                  child: const Text('设为当前'),
+                          trailing: SizedBox(
+                            width: 96,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                FilledButton.tonal(
+                                  onPressed: isCurrent
+                                      ? null
+                                      : () async {
+                                          await context.read<AppState>().setCurrentTaskFromHistory(item);
+                                          if (!context.mounted) return;
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('已设为当前任务', textAlign: TextAlign.center)),
+                                          );
+                                        },
+                                  child: Text(isCurrent ? '当前任务' : '设为当前'),
                                 ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => TaskEditorPage(editingTask: item)),
+                                  ),
+                                  child: const Text('编辑任务'),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -76,7 +90,7 @@ class HomePage extends StatelessWidget {
   }
 
   bool _isSameTask(FlightTask first, FlightTask second) {
-    return first.updatedAt == second.updatedAt;
+    return first.id == second.id;
   }
 }
 

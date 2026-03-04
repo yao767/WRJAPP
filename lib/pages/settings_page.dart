@@ -85,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 );
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('全局参数已保存')),
+                  const SnackBar(content: Text('全局参数已保存', textAlign: TextAlign.center)),
                 );
               },
               child: const Text('保存全局参数'),
@@ -98,7 +98,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       if (!mounted) return;
                       setState(() {});
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('已连接：${service.deviceName}')),
+                        SnackBar(content: Text('已连接：${service.deviceName}', textAlign: TextAlign.center)),
                       );
                     },
               child: const Text('连接设备'),
@@ -126,13 +126,13 @@ class _SettingsPageState extends State<SettingsPage> {
                       } on StateError catch (error) {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(error.message)),
+                          SnackBar(content: Text(error.message, textAlign: TextAlign.center)),
                         );
                         return;
                       }
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('参数已下发（模拟）')),
+                        const SnackBar(content: Text('参数已下发（模拟）', textAlign: TextAlign.center)),
                       );
                     }
                   : null,

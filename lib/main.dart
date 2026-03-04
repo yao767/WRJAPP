@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'app_info.dart';
 import 'pages/home_shell.dart';
 import 'pages/login_page.dart';
 import 'state/app_state.dart';
@@ -17,11 +18,15 @@ class GuardianApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AppState()..init(),
       child: MaterialApp(
-        title: '护花使者',
+        title: appProjectName,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
           useMaterial3: true,
+          snackBarTheme: SnackBarThemeData(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.black.withOpacity(0.55),
+          ),
         ),
         home: const AuthGate(),
       ),

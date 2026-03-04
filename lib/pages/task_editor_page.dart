@@ -5,7 +5,9 @@ import '../models/flight_task.dart';
 import '../state/app_state.dart';
 
 class TaskEditorPage extends StatefulWidget {
-  const TaskEditorPage({super.key});
+  const TaskEditorPage({super.key, this.editingTask});
+
+  final FlightTask? editingTask;
 
   @override
   State<TaskEditorPage> createState() => _TaskEditorPageState();
@@ -43,12 +45,14 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
       _operationMode = suggestion.operationMode;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已应用建议：${suggestion.summary}')),
+      SnackBar(content: Text('已应用建议：${suggestion.summary}', textAlign: TextAlign.center)),
     );
   }
 
   Future<void> _save() async {
+    final sourceTask = widget.editingTask;
     final task = FlightTask(
+      id: sourceTask?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       taskType: _taskType,
       crop: _crop,
       season: _season,
@@ -63,22 +67,49 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
 
     await context.read<AppState>().saveTask(task);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('任务参数已保存')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('任务参数已保存', textAlign: TextAlign.center)),
+    );
+    Navigator.of(context).pop();
+  }
+
+  Future<void> _deleteCurrentTask() async {
+    final sourceTask = widget.editingTask;
+    if (sourceTask == null) return;
+
+    await context.read<AppState>().deleteTaskById(sourceTask.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('任务已删除', textAlign: TextAlign.center)),
+    );
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_initialized) {
-      final globalSettings = context.read<AppState>().globalSettings;
-      _height = globalSettings.height;
-      _speed = globalSettings.speed;
-      _angle = globalSettings.angle;
+      final sourceTask = widget.editingTask;
+      if (sourceTask != null) {
+        _taskType = sourceTask.taskType;
+        _crop = sourceTask.crop;
+        _season = sourceTask.season;
+        _takeoffMode = sourceTask.takeoffMode;
+        _operationMode = sourceTask.operationMode;
+        _landingMode = sourceTask.landingMode;
+        _height = sourceTask.height;
+        _speed = sourceTask.speed;
+        _angle = sourceTask.angle;
+      } else {
+        final globalSettings = context.read<AppState>().globalSettings;
+        _height = globalSettings.height;
+        _speed = globalSettings.speed;
+        _angle = globalSettings.angle;
+      }
       _initialized = true;
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('添加/编辑飞行任务')),
+      appBar: AppBar(title: Text(widget.editingTask == null ? '添加飞行任务' : '编辑飞行任务')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -109,6 +140,14 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
             icon: const Icon(Icons.save),
             label: const Text('保存当前参数'),
           ),
+          if (widget.editingTask != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: _deleteCurrentTask,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('删除此任务'),
+            ),
+          ],
         ],
       ),
     );

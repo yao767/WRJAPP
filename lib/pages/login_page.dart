@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../app_info.dart';
 import '../state/app_state.dart';
 
 class LoginPage extends StatefulWidget {
@@ -52,7 +53,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _show(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg, textAlign: TextAlign.center)),
+    );
   }
 
   @override
@@ -69,7 +72,11 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Icon(Icons.agriculture, size: 56),
                   const SizedBox(height: 12),
-                  const Text('护花使者', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const Text(
+                    appProjectName,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 24),
                   TextField(
                     controller: _userController,

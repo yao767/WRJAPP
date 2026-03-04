@@ -13,18 +13,18 @@ class AppState extends ChangeNotifier {
   AppState({
     AuthService? authService,
     TaskService? taskService,
-      SettingsService? settingsService,
+    SettingsService? settingsService,
     SuggestionService? suggestionService,
     DroneConnectionService? droneConnectionService,
   })  : _authService = authService ?? AuthService(),
         _taskService = taskService ?? TaskService(),
-      _settingsService = settingsService ?? SettingsService(),
+        _settingsService = settingsService ?? SettingsService(),
         _suggestionService = suggestionService ?? SuggestionService(),
         _droneConnectionService = droneConnectionService ?? DroneConnectionService();
 
   final AuthService _authService;
   final TaskService _taskService;
-    final SettingsService _settingsService;
+  final SettingsService _settingsService;
   final SuggestionService _suggestionService;
   final DroneConnectionService _droneConnectionService;
 
@@ -80,7 +80,13 @@ class AppState extends ChangeNotifier {
 
   Future<void> setCurrentTaskFromHistory(FlightTask task) async {
     _currentTask = task;
-    await _taskService.saveTask(task);
+    await _taskService.setLatestTask(task);
+    notifyListeners();
+  }
+
+  Future<void> deleteTaskById(String id) async {
+    await _taskService.deleteTaskById(id);
+    _currentTask = await _taskService.loadLatestTask();
     _taskHistory = await _taskService.loadTaskHistory();
     notifyListeners();
   }
