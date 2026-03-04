@@ -1,7 +1,7 @@
 {
-  "version": "0.1.0",
-  "buildNumber": 1,
+  "version": "0.1.1",
+  "buildNumber": 2,
   "downloadUrl": "https://github.com/yao767/WRJAPP/releases/latest",
-  "releaseNotes": "当前版本为基线版本。后续发布新版本时，请提高 version/buildNumber 并替换下载链接。",
+  "releaseNotes": "修复任务历史编辑按钮不可用与列表溢出问题，优化弹窗显示与在线更新流程稳定性。",
   "force": false
 }
