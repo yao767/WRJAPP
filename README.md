@@ -123,6 +123,23 @@ keytool -genkeypair -v -keystore upload-keystore.jks -alias upload -keyalg RSA -
 3. 构建完成后下载 Artifact：`app-release-apk`。
 4. 解压后得到 `app-release.apk`，即可用于正式安装测试。
 
+## 在线更新（已接入）
+- 应用启动后会自动检查更新（联网时）。
+- 关于页面提供“手动检查更新”按钮。
+- 更新信息来源：项目根目录 [update.json](update.json)
+
+`update.json` 字段说明：
+- `version`：语义化版本号（如 `0.1.1`）
+- `buildNumber`：构建号（整数，需递增）
+- `downloadUrl`：新版本安装包下载地址
+- `releaseNotes`：更新说明
+- `force`：是否强制更新（`true/false`）
+
+发布新版本时：
+1. 上传新 APK 到可访问地址（建议 GitHub Release 资产）。
+2. 修改 `update.json` 的 `version` / `buildNumber` / `downloadUrl`。
+3. 提交并推送后，已安装旧版本的用户可在应用内看到更新提示。
+
 ## 已知限制
 - 账号密码仅本地存储，未加密。
 - 无后端接口，无法进行任务历史云端同步。
