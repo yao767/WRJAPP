@@ -1,7 +1,7 @@
 {
   "version": "0.1.2",
   "buildNumber": 3,
-  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1.0.2/app-release.apk",
-  "releaseNotes": "优化弹窗时序与淡出、时间显示精确到分钟、新增任务名称字段，并修复历史任务交互问题。",
+  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1/app-release.apk",
+  "releaseNotes": "优化了安装时页面跳转",
   "force": false
 }
