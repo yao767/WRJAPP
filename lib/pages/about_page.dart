@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../app_info.dart';
 import '../models/app_update_info.dart';
@@ -110,7 +111,14 @@ class AboutPage extends StatelessWidget {
         children: [
           const Text(appProjectName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          const Text('版本：$appVersionLabel'),
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final info = snapshot.data;
+              final label = info == null ? appVersionLabel : '${info.version}+${info.buildNumber}';
+              return Text('版本：$label');
+            },
+          ),
           const Text('联系方式：$appContactEmail'),
           const SizedBox(height: 10),
           const Text('使用说明：'),

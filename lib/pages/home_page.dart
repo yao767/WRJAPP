@@ -238,11 +238,27 @@ class _CurrentTaskCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '当前任务：$taskName',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '当前任务：$taskName',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: const Icon(Icons.check, size: 14, color: Colors.white),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text('作物：${task!.crop} | 时节：${task!.season}'),
