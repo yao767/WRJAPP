@@ -1,7 +1,7 @@
 {
-  "version": "0.1.2",
-  "buildNumber": 3,
-  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1/app-release.apk",
-  "releaseNotes": "优化了安装时页面跳转",
+  "version": "1.0.4",
+  "buildNumber": 4,
+  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1.0.4/app-release.apk",
+  "releaseNotes": "优化了安装时页面跳转，增强更新清单拉取兼容性。",
   "force": false
 }
