@@ -33,8 +33,8 @@ class _HomeShellState extends State<HomeShell> {
     AppUpdateInfo? update;
     try {
       update = await const UpdateService().checkForUpdate();
-    } catch (_) {
-      if (mounted) showAppToast(context, '检查更新失败，请稍后重试');
+    } catch (error) {
+      if (mounted) showAppToast(context, '检查更新失败：$error');
       return;
     }
     if (!mounted || update == null) return;

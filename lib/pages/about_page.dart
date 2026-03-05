@@ -96,9 +96,9 @@ class AboutPage extends StatelessWidget {
         return;
       }
       await _showUpdateDialog(context, update);
-    } catch (_) {
+    } catch (error) {
       if (!context.mounted) return;
-      showAppToast(context, '检查更新失败，请稍后重试');
+      showAppToast(context, '检查更新失败：$error');
     }
   }
 
