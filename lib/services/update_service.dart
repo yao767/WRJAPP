@@ -41,14 +41,17 @@ class UpdateService {
   }
 
   Future<AppUpdateInfo?> fetchUpdateInfo() async {
-    final uri = Uri.parse(appUpdateManifestUrl);
-    final response = await http.get(uri);
-    if (response.statusCode != 200) {
-      return null;
-    }
+    for (final url in appUpdateManifestUrls) {
+      final uri = Uri.parse(url);
+      final response = await http.get(uri);
+      if (response.statusCode != 200) {
+        continue;
+      }
 
-    final map = jsonDecode(response.body) as Map<String, dynamic>;
-    return AppUpdateInfo.fromMap(map);
+      final map = jsonDecode(response.body) as Map<String, dynamic>;
+      return AppUpdateInfo.fromMap(map);
+    }
+    return null;
   }
 
   Future<AppUpdateInfo?> checkForUpdate() async {

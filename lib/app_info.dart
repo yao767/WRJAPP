@@ -1,7 +1,10 @@
 const appProjectName = '护花使者——植保无人机适配系统APP';
 const appVersionLabel = '0.1.0 MVP';
 const appContactEmail = '3302875008@qq.com';
-const appUpdateManifestUrl = 'https://raw.githubusercontent.com/yao767/WRJAPP/main/update.json';
+const appUpdateManifestUrls = [
+  'https://raw.githubusercontent.com/yao767/WRJAPP/main/update.json',
+  'https://cdn.jsdelivr.net/gh/yao767/WRJAPP@main/update.json',
+];
 
 const appUsageSteps = [
   '1. 登录后在主页面点击“+”添加飞行任务。',
