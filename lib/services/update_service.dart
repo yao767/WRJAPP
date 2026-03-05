@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../app_info.dart';
 import '../models/app_update_info.dart';
@@ -33,6 +34,14 @@ class UpdateService {
         onProgress(received / total);
       },
     );
+
+    var installPermission = await Permission.requestInstallPackages.status;
+    if (!installPermission.isGranted) {
+      installPermission = await Permission.requestInstallPackages.request();
+    }
+    if (!installPermission.isGranted) {
+      throw Exception('请先在系统设置中允许“安装未知应用（本应用）”后重试');
+    }
 
     final result = await OpenFilex.open(filePath);
     if (result.type != ResultType.done) {
