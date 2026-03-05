@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'app_info.dart';
 import 'pages/home_shell.dart';
 import 'pages/login_page.dart';
+import 'pages/splash_page.dart';
 import 'state/app_state.dart';
 
 void main() {
@@ -28,7 +29,7 @@ class GuardianApp extends StatelessWidget {
             backgroundColor: Colors.black.withOpacity(0.55),
           ),
         ),
-        home: const AuthGate(),
+        home: const SplashPage(next: AuthGate()),
       ),
     );
   }

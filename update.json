@@ -1,7 +1,7 @@
 {
-  "version": "1.0.6",
-  "buildNumber": 6,
-  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1.0.6/app-release.apk",
-  "releaseNotes": "修复安装未知应用权限流程，下载完成后可直接触发安装。",
+  "version": "1.0.7",
+  "buildNumber": 7,
+  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1.0.7/app-release.apk",
+  "releaseNotes": "新增开屏页：图标上浮渐显并停留后进入应用。",
   "force": false
 }
