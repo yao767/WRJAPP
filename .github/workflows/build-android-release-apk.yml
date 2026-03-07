@@ -85,38 +85,20 @@ jobs:
           gradle_file = Path('android/app/build.gradle.kts')
           content = gradle_file.read_text(encoding='utf-8')
 
-          if 'val keyProperties = java.util.Properties().apply {' not in content:
-              key_props_block = (
-                  'val keyProperties = java.util.Properties().apply {\n'
-                  '    val keyPropertiesFile = rootProject.file("key.properties")\n'
-                  '    if (keyPropertiesFile.exists()) {\n'
-                  '        load(keyPropertiesFile.inputStream())\n'
-                  '    }\n'
-                  '}\n\n'
-              )
-              anchor = 'android {'
-              if anchor in content:
-                  content = content.replace(anchor, key_props_block + anchor, 1)
-              else:
-                  content = key_props_block + content
-
-          if 'signingConfigs {' not in content:
-              signing_block = (
-                  '    signingConfigs {\n'
-                  '        create("release") {\n'
-                  '            val storeFilePath = keyProperties["storeFile"] as String?\n'
-                  '            if (storeFilePath != null) {\n'
-                  '                storeFile = rootProject.file(storeFilePath)\n'
-                  '            }\n'
-                  '            storePassword = keyProperties["storePassword"] as String?\n'
-                  '            keyAlias = keyProperties["keyAlias"] as String?\n'
-                  '            keyPassword = keyProperties["keyPassword"] as String?\n'
-                  '        }\n'
-                  '    }\n\n'
-              )
-              anchor = '    buildTypes {'
-              if anchor in content:
-                  content = content.replace(anchor, signing_block + anchor, 1)
+          if 'create("release")' not in content:
+            signing_block = (
+              '    signingConfigs {\n'
+              '        create("release") {\n'
+              '            storeFile = rootProject.file("upload-keystore.jks")\n'
+              '            storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")\n'
+              '            keyAlias = System.getenv("ANDROID_KEY_ALIAS")\n'
+              '            keyPassword = System.getenv("ANDROID_KEY_PASSWORD")\n'
+              '        }\n'
+              '    }\n\n'
+            )
+            anchor = '    buildTypes {'
+            if anchor in content:
+              content = content.replace(anchor, signing_block + anchor, 1)
 
           content = content.replace(
               '            signingConfig = signingConfigs.getByName("debug")',
@@ -133,6 +115,10 @@ jobs:
         run: dart run flutter_launcher_icons
 
       - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: flutter build apk --release
 
       - name: Print APK certificate fingerprint
