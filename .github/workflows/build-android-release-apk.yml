@@ -85,25 +85,16 @@ jobs:
           gradle_file = Path('android/app/build.gradle.kts')
           content = gradle_file.read_text(encoding='utf-8')
 
-          if 'import java.util.Properties' not in content:
-              lines = content.splitlines()
-              insert_index = 0
-              for i, line in enumerate(lines):
-                  if line.startswith('import '):
-                      insert_index = i + 1
-              lines.insert(insert_index, 'import java.util.Properties')
-              content = '\n'.join(lines) + '\n'
-
-          if 'val keyProperties = Properties().apply {' not in content:
+          if 'val keyProperties = java.util.Properties().apply {' not in content:
               key_props_block = (
-                  'val keyProperties = Properties().apply {\n'
+                  'val keyProperties = java.util.Properties().apply {\n'
                   '    val keyPropertiesFile = rootProject.file("key.properties")\n'
                   '    if (keyPropertiesFile.exists()) {\n'
                   '        load(keyPropertiesFile.inputStream())\n'
                   '    }\n'
                   '}\n\n'
               )
-              anchor = 'val flutterVersionCode'
+              anchor = 'android {'
               if anchor in content:
                   content = content.replace(anchor, key_props_block + anchor, 1)
               else:
