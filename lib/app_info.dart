@@ -1,5 +1,5 @@
 const appProjectName = '护花使者——植保无人机适配系统APP';
-const appVersionLabel = '0.1.0 MVP';
+const appVersionLabel = '1.0.9+9';
 const appContactEmail = '3302875008@qq.com';
 const appUpdateManifestUrls = [
   'https://raw.githubusercontent.com/yao767/WRJAPP/main/update.json',

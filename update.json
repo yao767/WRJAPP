@@ -1,7 +1,7 @@
 {
-  "version": "1.0.8",
-  "buildNumber": 8,
-  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1.0.8/app-release.apk",
-  "releaseNotes": "修复关于页版本显示，并增强当前任务标识。",
+  "version": "1.0.9",
+  "buildNumber": 9,
+  "downloadUrl": "https://github.com/yao767/WRJAPP/releases/download/v1.0.9/app-release.apk",
+  "releaseNotes": "优化页面布局，设置页分组重构，任务编辑新增删除确认弹窗。",
   "force": false
 }
