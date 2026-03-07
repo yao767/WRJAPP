@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../state/app_state.dart';
-import '../utils/app_feedback.dart';
+import 'about_page.dart';
+import 'device_settings_page.dart';
+import 'flight_settings_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -12,140 +15,91 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _workMode = '标准模式';
-  double _globalHeight = 2.5;
-  double _globalSpeed = 4.0;
-  double _globalAngle = 35;
-  String? _selectedDevice;
-  bool _initialized = false;
-
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final service = appState.droneConnectionService;
 
-    if (!_initialized) {
-      final globalSettings = appState.globalSettings;
-      _workMode = globalSettings.workMode;
-      _globalHeight = globalSettings.height;
-      _globalSpeed = globalSettings.speed;
-      _globalAngle = globalSettings.angle;
-      _initialized = true;
-    }
-
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('飞行姿态（全局参数）', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        _summaryCard(appState),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          value: _workMode,
-          decoration: const InputDecoration(labelText: '工作模式'),
-          items: const ['标准模式', '节能模式', '高精度模式']
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
-          onChanged: (v) {
-            if (v == null) return;
-            setState(() => _workMode = v);
-          },
+        _sectionTitle('飞行参数'),
+        _settingsTile(
+          title: '飞行姿态（全局参数）',
+          subtitle: '工作模式：${appState.globalSettings.workMode}',
+          icon: Icons.tune,
+          onTap: () => _openPage(context, const FlightSettingsPage()),
         ),
-        const SizedBox(height: 8),
-        _slider('全局高度(m)', _globalHeight, 1.5, 6.0, (v) => setState(() => _globalHeight = v)),
-        _slider('全局速度(m/s)', _globalSpeed, 2.0, 7.0, (v) => setState(() => _globalSpeed = v)),
-        _slider('全局角度(°)', _globalAngle, 20, 60, (v) => setState(() => _globalAngle = v)),
-        const Divider(height: 24),
-        const Text('蓝牙配对（接口预留）', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        FutureBuilder<List<String>>(
-          future: service.scanDevices(),
+        const SizedBox(height: 12),
+        _sectionTitle('设备连接'),
+        _settingsTile(
+          title: '蓝牙配对',
+          subtitle: service.isConnected ? '已连接：${service.deviceName}' : '未连接',
+          icon: Icons.bluetooth,
+          onTap: () => _openPage(context, const DeviceSettingsPage()),
+        ),
+        const SizedBox(height: 12),
+        _sectionTitle('关于'),
+        FutureBuilder<PackageInfo>(
+          future: PackageInfo.fromPlatform(),
           builder: (context, snapshot) {
-            final devices = snapshot.data ?? [];
-            return DropdownButtonFormField<String>(
-              value: _selectedDevice,
-              decoration: const InputDecoration(labelText: '选择遥控器设备'),
-              items: devices
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedDevice = v),
+            final info = snapshot.data;
+            final versionLabel = info == null ? '获取中...' : '${info.version}+${info.buildNumber}';
+            return _settingsTile(
+              title: '关于与更新',
+              subtitle: '版本：$versionLabel',
+              icon: Icons.info_outline,
+              onTap: () => _openPage(context, const AboutPage()),
             );
           },
         ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          children: [
-            FilledButton.tonal(
-              onPressed: () async {
-                await appState.updateGlobalSettings(
-                  appState.globalSettings.copyWith(
-                    workMode: _workMode,
-                    height: _globalHeight,
-                    speed: _globalSpeed,
-                    angle: _globalAngle,
-                  ),
-                );
-                if (!mounted) return;
-                showAppToast(context, '全局参数已保存');
-              },
-              child: const Text('保存全局参数'),
-            ),
-            FilledButton(
-              onPressed: _selectedDevice == null
-                  ? null
-                  : () async {
-                      await service.connect(_selectedDevice!);
-                      if (!mounted) return;
-                      setState(() {});
-                      showAppToast(context, '已连接：${service.deviceName}');
-                    },
-              child: const Text('连接设备'),
-            ),
-            OutlinedButton(
-              onPressed: service.isConnected
-                  ? () async {
-                      await service.disconnect();
-                      if (!mounted) return;
-                      setState(() {});
-                    }
-                  : null,
-              child: const Text('断开连接'),
-            ),
-            FilledButton.tonal(
-              onPressed: service.isConnected
-                  ? () async {
-                      try {
-                        await service.pushFlightParams({
-                          'mode': _workMode,
-                          'height': _globalHeight,
-                          'speed': _globalSpeed,
-                          'angle': _globalAngle,
-                        });
-                      } on StateError catch (error) {
-                        if (!mounted) return;
-                        showAppToast(context, error.message);
-                        return;
-                      }
-                      if (!mounted) return;
-                      showAppToast(context, '参数已下发（模拟）');
-                    }
-                  : null,
-              child: const Text('下发参数'),
-            )
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text(service.isConnected ? '当前连接：${service.deviceName}' : '当前状态：未连接'),
       ],
     );
   }
 
-  Widget _slider(String label, double value, double min, double max, ValueChanged<double> onChange) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('$label：${value.toStringAsFixed(1)}'),
-        Slider(value: value, min: min, max: max, onChanged: onChange),
-      ],
+  Widget _sectionTitle(String text) {
+    return Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold));
+  }
+
+  Widget _summaryCard(AppState appState) {
+    final settings = appState.globalSettings;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('概览', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text('工作模式：${settings.workMode}'),
+            Text('高度：${settings.height.toStringAsFixed(1)}m  速度：${settings.speed.toStringAsFixed(1)}m/s  角度：${settings.angle.toStringAsFixed(0)}°'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _settingsTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+    );
+  }
+
+  Future<void> _openPage(BuildContext context, Widget page) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => page),
     );
   }
 }

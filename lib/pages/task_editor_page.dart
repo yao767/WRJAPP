@@ -84,6 +84,28 @@ class _TaskEditorPageState extends State<TaskEditorPage> {
     final sourceTask = widget.editingTask;
     if (sourceTask == null) return;
 
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('确认删除', textAlign: TextAlign.center),
+          content: const Text('删除后不可恢复，是否继续？', textAlign: TextAlign.center),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('删除'),
+            ),
+          ],
+        );
+      },
+    );
+    if (shouldDelete != true) return;
+
     await context.read<AppState>().deleteTaskById(sourceTask.id);
     if (!mounted) return;
     showAppToast(context, '任务已删除');

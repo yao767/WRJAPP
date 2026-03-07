@@ -5,7 +5,6 @@ import '../models/app_update_info.dart';
 import '../services/update_service.dart';
 import '../state/app_state.dart';
 import '../utils/app_feedback.dart';
-import 'about_page.dart';
 import 'home_page.dart';
 import 'settings_page.dart';
 import 'suggestion_page.dart';
@@ -127,9 +126,8 @@ class _HomeShellState extends State<HomeShell> {
       HomePage(),
       SuggestionPage(),
       SettingsPage(),
-      AboutPage(),
     ];
-    final titles = const ['主页面', '建议页面', '设置页面', '关于页面'];
+    final titles = const ['主页面', '建议页面', '设置页面'];
 
     return Scaffold(
       appBar: AppBar(
@@ -152,7 +150,6 @@ class _HomeShellState extends State<HomeShell> {
           NavigationDestination(icon: Icon(Icons.home), label: '主页面'),
           NavigationDestination(icon: Icon(Icons.tips_and_updates), label: '建议'),
           NavigationDestination(icon: Icon(Icons.settings), label: '设置'),
-          NavigationDestination(icon: Icon(Icons.info), label: '关于'),
         ],
       ),
     );
