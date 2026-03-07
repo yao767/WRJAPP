@@ -123,7 +123,9 @@ jobs:
 
       - name: Print APK certificate fingerprint
         run: |
-          keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk | grep -E 'Owner:|Issuer:|SHA256:'
+          CERT_OUTPUT=$(keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk || true)
+          echo "$CERT_OUTPUT"
+          echo "$CERT_OUTPUT" | grep -E 'Owner:|Issuer:|SHA256:|SHA-256:' || echo "Fingerprint lines not matched by grep, but build can continue."
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
