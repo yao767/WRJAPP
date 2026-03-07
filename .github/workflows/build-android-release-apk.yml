@@ -77,6 +77,53 @@ jobs:
           storeFile=upload-keystore.jks
           EOF
 
+      - name: Configure Gradle release signing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          gradle_file = Path('android/app/build.gradle.kts')
+          content = gradle_file.read_text(encoding='utf-8')
+
+          if 'val keyProperties = Properties().apply {' not in content:
+              key_props_block = '''val keyProperties = Properties().apply {
+    val keyPropertiesFile = rootProject.file("key.properties")
+    if (keyPropertiesFile.exists()) {
+        load(keyPropertiesFile.inputStream())
+    }
+}
+
+'''
+              anchor = 'val flutterVersionCode'
+              if anchor in content:
+                  content = content.replace(anchor, key_props_block + anchor, 1)
+
+          if 'signingConfigs {' not in content:
+              signing_block = '''    signingConfigs {
+        create("release") {
+            val storeFilePath = keyProperties["storeFile"] as String?
+            if (storeFilePath != null) {
+                storeFile = rootProject.file(storeFilePath)
+            }
+            storePassword = keyProperties["storePassword"] as String?
+            keyAlias = keyProperties["keyAlias"] as String?
+            keyPassword = keyProperties["keyPassword"] as String?
+        }
+    }
+
+'''
+              anchor = '    buildTypes {'
+              if anchor in content:
+                  content = content.replace(anchor, signing_block + anchor, 1)
+
+          content = content.replace(
+              '            signingConfig = signingConfigs.getByName("debug")',
+              '            signingConfig = signingConfigs.getByName("release")',
+          )
+
+          gradle_file.write_text(content, encoding='utf-8')
+          PY
+
       - name: Get dependencies
         run: flutter pub get
 
@@ -85,6 +132,10 @@ jobs:
 
       - name: Build signed release APK
         run: flutter build apk --release
+
+      - name: Print APK certificate fingerprint
+        run: |
+          keytool -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk | grep -E 'Owner:|Issuer:|SHA256:'
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
