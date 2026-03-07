@@ -86,32 +86,32 @@ jobs:
           content = gradle_file.read_text(encoding='utf-8')
 
           if 'val keyProperties = Properties().apply {' not in content:
-              key_props_block = '''val keyProperties = Properties().apply {
-    val keyPropertiesFile = rootProject.file("key.properties")
-    if (keyPropertiesFile.exists()) {
-        load(keyPropertiesFile.inputStream())
-    }
-}
-
-'''
+              key_props_block = (
+                  'val keyProperties = Properties().apply {\n'
+                  '    val keyPropertiesFile = rootProject.file("key.properties")\n'
+                  '    if (keyPropertiesFile.exists()) {\n'
+                  '        load(keyPropertiesFile.inputStream())\n'
+                  '    }\n'
+                  '}\n\n'
+              )
               anchor = 'val flutterVersionCode'
               if anchor in content:
                   content = content.replace(anchor, key_props_block + anchor, 1)
 
           if 'signingConfigs {' not in content:
-              signing_block = '''    signingConfigs {
-        create("release") {
-            val storeFilePath = keyProperties["storeFile"] as String?
-            if (storeFilePath != null) {
-                storeFile = rootProject.file(storeFilePath)
-            }
-            storePassword = keyProperties["storePassword"] as String?
-            keyAlias = keyProperties["keyAlias"] as String?
-            keyPassword = keyProperties["keyPassword"] as String?
-        }
-    }
-
-'''
+              signing_block = (
+                  '    signingConfigs {\n'
+                  '        create("release") {\n'
+                  '            val storeFilePath = keyProperties["storeFile"] as String?\n'
+                  '            if (storeFilePath != null) {\n'
+                  '                storeFile = rootProject.file(storeFilePath)\n'
+                  '            }\n'
+                  '            storePassword = keyProperties["storePassword"] as String?\n'
+                  '            keyAlias = keyProperties["keyAlias"] as String?\n'
+                  '            keyPassword = keyProperties["keyPassword"] as String?\n'
+                  '        }\n'
+                  '    }\n\n'
+              )
               anchor = '    buildTypes {'
               if anchor in content:
                   content = content.replace(anchor, signing_block + anchor, 1)
